@@ -15,15 +15,25 @@ let Spot = function(_x, _y)
     this.x = _x;
     this.y = _y;
 
+    //f(n) = h(n) + g(n) 
+    //f(n) is the total cost to reach there
     this.f = 0;
     this.g = 0;
     this.h = 0;
-    this.cameFrom;
+
+    this.cameFrom; //Indicates to previous node
+    this.wall = false;
+    
+    //10 percent chance of becoming a wall
+    if(random(1) < 0.5)
+        this.wall = true;
 
     this.neighbours = [];
     this.show = function(color)
     {
         fill(color);
+        if(this.wall)
+            fill(0)
         stroke(1);
         rect(this.x * spotWidth, this.y * spotHeight, spotWidth, spotHeight);
     }
@@ -32,19 +42,31 @@ let Spot = function(_x, _y)
     {
         const x = this.x;
         const y = this.y;
-        if(x < column - 1)
-            this.neighbours.push(grid[x + 1][y]);
-        if(x > 0)
-            this.neighbours.push(grid[x - 1][y]);
-        if(y < row - 1)
-            this.neighbours.push(grid[x][y + 1]);
+        //Horizontal and vertical neighbours
         if(y > 0)
-            this.neighbours.push(grid[x][y - 1]);
-    }
-}
-function heuristic(a, b) {
+            this.neighbours.push(grid[x][y - 1]);   //Top neighbour
+        if(y < row - 1)
+            this.neighbours.push(grid[x][y + 1]);   //Bottom neighbour
+        if(x < column - 1)
+            this.neighbours.push(grid[x + 1][y]);   //Right neighbour
+        if(x > 0)
+            this.neighbours.push(grid[x - 1][y]);   //Left neighbour
+            
+        //Diagonal neighbours 
+        if(x > 0 && y > 0)
+            this.neighbours.push(grid[x - 1][y - 1]); //Bottom-Left neighbour
+        if(x < column - 1 && y > 0)
+            this.neighbours.push(grid[x + 1][y - 1]); //Bottom-Right neighbour
+        if(x > 0 && y < row - 1)
+            this.neighbours.push(grid[x - 1][y + 1]); //Top-Left neighbour
+        if(x < column - 1 && y < row - 1)
+            this.neighbours.push(grid[x + 1][y + 1]); //Top-Right neighbour
 
-    return abs(a.x, b.x) + abs(a.y, b.y);
+    }  
+}
+function heuristic(a, b) 
+{
+    return abs(a.x - b.x) + abs(a.y - b.y);
 }
 function setup() 
 {
@@ -73,7 +95,8 @@ function setup()
     }
     start = grid[0][0];
     end = grid[column - 1][row - 1];
-
+    start.wall = false;
+    end.wall = false;
     openSet.push(start);
 }
 
@@ -101,7 +124,7 @@ function draw()
                 path.push(temp.cameFrom);
                 temp = temp.cameFrom;
             }
-            clearInterval
+
             console.log("DONE!");
             noLoop();
         }
@@ -111,7 +134,7 @@ function draw()
         let neighbours = current.neighbours;
         for (let i = 0; i < neighbours.length; i++) {
             let neighbour = neighbours[i];
-            if(!closedSet.includes(neighbour))
+            if(!closedSet.includes(neighbour) && !neighbour.wall)
             {
                 var temp_g = current.g + 1;  
                 if(openSet.includes(neighbour)) 
@@ -134,7 +157,9 @@ function draw()
     }
     else
     {
-        console.log("No Solution");
+        alert("There is no solution! 😓")
+        noLoop()
+        return;
     }
     
     for (let i = 0; i < column; i++) 
@@ -153,7 +178,7 @@ function draw()
         openSet[i].show(color(0, 255, 0))
     }
     for (let i = 0; i < path.length; i++) {
-        path[i].show(color(0, 0, 255))
+        path[i].show(color(94, 121, 255))
     }
    
 }
